@@ -223,6 +223,7 @@ export default class Game {
     }
     if (this.input.wasPressed('mute')) this.audio.toggleMute();
     this.handleTouchTaps();
+    if (this.state !== 'playing') return; // pause button tapped
     if (this.input.wasPressed('bomb')) this.useBomb();
 
     // periodic supply drop keeps builds flowing
@@ -290,6 +291,7 @@ export default class Game {
       return;
     }
     this.handleTouchTaps();
+    if (this.state !== 'waveclear') return; // pause button tapped
     this.updateWorld(pdt, wdt, true);
     this.stateTimer -= pdt;
     if (this.stateTimer <= 0) this.nextWave();
@@ -301,6 +303,8 @@ export default class Game {
       this.state = 'paused';
       return;
     }
+    this.handleTouchTaps();
+    if (this.state !== 'bossintro') return;
     this.player.update(pdt, this, false);
     this.boss?.update(pdt, this);
     this.particles.update(pdt);
@@ -353,8 +357,17 @@ export default class Game {
       for (const btn of this.touchButtons()) {
         if (dist2(tap.x, tap.y, btn.x, btn.y) < btn.r * btn.r) {
           this.btnFlashT[btn.label] = 0.22;
-          if (btn.label === 'BOMB') this.useBomb();
-          else this.dashRequested = true;
+          if (btn.label === 'BOMB') {
+            this.useBomb();
+          } else if (btn.label === 'PAUSE') {
+            if (this.state === 'playing' || this.state === 'waveclear' || this.state === 'bossintro') {
+              this.prevState = this.state;
+              this.state = 'paused';
+              this.audio.select();
+            }
+          } else {
+            this.dashRequested = true;
+          }
           try { navigator.vibrate?.(btn.label === 'BOMB' ? 35 : 15); } catch { /* unsupported */ }
         }
       }
@@ -528,6 +541,7 @@ export default class Game {
     return [
       { x: this.width - 62, y: this.height - 126, r: 40, label: 'BOMB', color: '#ff5c5c' },
       { x: 62, y: this.height - 126, r: 40, label: 'DASH', color: '#26d8ff' },
+      { x: this.width - 32, y: 86, r: 22, label: 'PAUSE', color: '#9ab8d8' },
     ];
   }
 
@@ -1019,6 +1033,7 @@ export default class Game {
           ['DRAG', 'ship mirrors your finger — auto-fire'],
           ['DASH BUTTON', 'invincible burst in your move direction'],
           ['BOMB BUTTON', 'clear the screen (limited stock)'],
+          ['PAUSE BUTTON', 'top-right corner — tap again to resume'],
           ['', ''],
           ['PICKUPS', 'grab hex capsules for weapons & buffs'],
           ['COMBO', 'chain kills fast to multiply your score'],

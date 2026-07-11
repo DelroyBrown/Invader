@@ -187,17 +187,28 @@ export function drawHUD(ctx: CanvasRenderingContext2D, game: Game): void {
     for (const btn of game.touchButtons()) {
       const flash = Math.max(0, game.btnFlashT[btn.label] ?? 0);
       const isBomb = btn.label === 'BOMB';
+      const isPause = btn.label === 'PAUSE';
       const disabled = isBomb && p.bombs <= 0;
       ctx.save();
-      ctx.globalAlpha = (disabled ? 0.14 : 0.3) + flash * 1.4;
+      ctx.globalAlpha = (disabled ? 0.14 : isPause ? 0.2 : 0.3) + flash * 1.4;
       ctx.fillStyle = btn.color;
       ctx.beginPath();
       ctx.arc(btn.x, btn.y, btn.r, 0, TAU);
       ctx.fill();
-      ctx.globalAlpha = disabled ? 0.35 : 0.85;
+      ctx.globalAlpha = disabled ? 0.35 : isPause ? 0.6 : 0.85;
       ctx.strokeStyle = btn.color;
       ctx.lineWidth = 2;
       ctx.stroke();
+
+      if (isPause) {
+        // ‖ icon
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(btn.x - 6.5, btn.y - 7, 4.5, 14);
+        ctx.fillRect(btn.x + 2, btn.y - 7, 4.5, 14);
+        ctx.restore();
+        continue;
+      }
 
       if (!isBomb) {
         // dash cooldown sweep — full white ring means ready
