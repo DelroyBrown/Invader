@@ -129,6 +129,28 @@ export function drawHUD(ctx: CanvasRenderingContext2D, game: Game): void {
     ctx.fillRect(16, hbY - 5, hpW * clamp(p.shieldTime / 10, 0, 1), 3);
   }
 
+  // ---- spare ships (below the hull bar) ----
+  for (let i = 0; i < game.lives; i++) {
+    const sx = 22 + i * 20;
+    const sy = hbY + 20;
+    ctx.fillStyle = '#7df9ff';
+    ctx.shadowColor = '#7df9ff';
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy - 7);
+    ctx.lineTo(sx + 6, sy + 5);
+    ctx.lineTo(sx, sy + 2);
+    ctx.lineTo(sx - 6, sy + 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+  if (game.lives > 0) {
+    ctx.fillStyle = '#5a7a9a';
+    ctx.font = `500 9px ${FONT}`;
+    ctx.fillText('SHIPS', 16 + game.lives * 20 + 6, hbY + 23);
+  }
+
   // ---- weapon + bombs (bottom-right) ----
   const weapon = WEAPONS[p.weapon];
   ctx.textAlign = 'right';

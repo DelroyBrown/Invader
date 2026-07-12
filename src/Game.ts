@@ -46,6 +46,8 @@ export default class Game {
   score = 0;
   dispScore = 0;
   scorePop = 0;
+  /** Spare ships — fixed at 2 per run, never replenished. */
+  lives = 2;
   highScore = Storage.getHighScore();
   wave = 0;
   combo = 0;
@@ -261,15 +263,19 @@ export default class Game {
     if (this.deathTimer > 0) {
       this.deathTimer -= pdt;
       if (this.deathTimer <= 0) {
-        this.newRecord = this.score > this.highScore && this.highScore > 0;
-        if (this.score > this.highScore) {
-          this.highScore = Math.floor(this.score);
-          Storage.setHighScore(this.highScore);
+        if (this.lives > 0) {
+          this.respawnPlayer();
+        } else {
+          this.newRecord = this.score > this.highScore && this.highScore > 0;
+          if (this.score > this.highScore) {
+            this.highScore = Math.floor(this.score);
+            Storage.setHighScore(this.highScore);
+          }
+          this.audio.stopMusic();
+          this.audio.gameOver();
+          this.state = 'gameover';
+          this.stateTimer = 0.6;
         }
-        this.audio.stopMusic();
-        this.audio.gameOver();
-        this.state = 'gameover';
-        this.stateTimer = 0.6;
       }
       return;
     }
@@ -382,6 +388,7 @@ export default class Game {
     this.audio.startMusic();
     this.score = 0;
     this.dispScore = 0;
+    this.lives = 2;
     this.combo = 0;
     this.maxCombo = 0;
     this.kills = 0;
@@ -453,6 +460,25 @@ export default class Game {
     this.cineSlow = 1.2;
     this.audio.explosion(2);
     this.deathTimer = 1.7;
+  }
+
+  /** Spend a spare ship: same wave, score and loadout — the run continues. */
+  private respawnPlayer(): void {
+    this.lives--;
+    const p = this.player;
+    p.hp = p.maxHp;
+    p.alive = true;
+    p.x = this.width / 2;
+    p.y = this.height - 100;
+    p.invuln = 3;
+    p.beamExposure = 0;
+    // clear the field so the fresh ship isn't shot down on arrival
+    this.enemyBullets = [];
+    this.particles.ring(p.x, p.y, '#7df9ff', 600);
+    this.particles.sparks(p.x, p.y, '#7df9ff', 24);
+    this.flash('#7df9ff', 0.15);
+    this.audio.powerup();
+    this.addText(this.width / 2, this.height * 0.45, this.lives > 0 ? 'SHIP RESTORED' : 'LAST SHIP!', '#7df9ff', 24);
   }
 
   onBossDefeated(boss: Boss): void {
@@ -1040,6 +1066,7 @@ export default class Game {
           ['SHIELD SIDE', 'shield bugs block from one side — flank them'],
           ['MINES', 'shoot them before they burst'],
           ['LASERS', 'dart straight through — quick crossings never hurt'],
+          ['SHIPS', '2 spares per run — respawn where you fell'],
         ]
       : [
           ['W A S D / ARROWS', 'move in all directions'],
@@ -1053,6 +1080,7 @@ export default class Game {
           ['SHIELD SIDE', 'shield bugs block from one side — flank them'],
           ['MINES', 'shoot them before they burst'],
           ['LASERS', 'dart straight through — quick crossings never hurt'],
+          ['SHIPS', '2 spares per run — respawn where you fell'],
         ];
 
     const narrow = this.width < 560;
