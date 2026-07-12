@@ -140,7 +140,9 @@ export class Boss {
         this.beamT = 2.4;
         game.audio.zap();
       } else if (this.beamState === 2) {
-        this.beamX += this.beamDir * (game.width / 2.4) * dt;
+        // slower than the player (430) and stops short of the far wall,
+        // so outrunning the sweep always leaves a safe lane
+        this.beamX += this.beamDir * Math.min(330, game.width * 0.3) * dt;
         game.shake(2);
         if (this.beamT <= 0) this.beamState = 0;
       }

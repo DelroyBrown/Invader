@@ -342,7 +342,7 @@ export default class Game {
     this.boss?.update(wdt, this);
     for (const pu of this.powerups) pu.update(pdt, this);
 
-    handleCollisions(this);
+    handleCollisions(this, pdt);
     this.particles.update(pdt);
 
     this.playerBullets = this.playerBullets.filter((b) => !b.dead);
@@ -1039,6 +1039,7 @@ export default class Game {
           ['COMBO', 'chain kills fast to multiply your score'],
           ['SHIELD SIDE', 'shield bugs block from one side — flank them'],
           ['MINES', 'shoot them before they burst'],
+          ['LASERS', 'dart straight through — quick crossings never hurt'],
         ]
       : [
           ['W A S D / ARROWS', 'move in all directions'],
@@ -1051,6 +1052,7 @@ export default class Game {
           ['COMBO', 'chain kills fast to multiply your score'],
           ['SHIELD SIDE', 'shield bugs block from one side — flank them'],
           ['MINES', 'shoot them before they burst'],
+          ['LASERS', 'dart straight through — quick crossings never hurt'],
         ];
 
     const narrow = this.width < 560;

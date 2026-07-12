@@ -34,6 +34,8 @@ export class Player {
 
   shieldTime = 0;
   invuln = 0;
+  /** Continuous time spent inside a beam — damage lands only past the grace window. */
+  beamExposure = 0;
   rapidTime = 0;
   multiTime = 0;
   slowTime = 0;

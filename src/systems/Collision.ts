@@ -3,14 +3,14 @@ import type { Enemy } from '../entities/Enemy';
 import type { Bullet } from '../entities/Bullet';
 import { dist2 } from '../utils/math';
 
-export function handleCollisions(game: Game): void {
+export function handleCollisions(game: Game, dt: number): void {
   playerBulletsVsEnemies(game);
   if (game.boss) playerBulletsVsBoss(game);
   playerBulletsVsMines(game);
   if (game.player.alive) {
     enemyBulletsVsPlayer(game);
     enemiesVsPlayer(game);
-    beamsVsPlayer(game);
+    beamsVsPlayer(game, dt);
     powerupsVsPlayer(game);
   }
 }
@@ -145,15 +145,33 @@ function enemiesVsPlayer(game: Game): void {
   if (game.boss && game.boss.touchesPlayer(p)) p.takeDamage(25, game);
 }
 
-function beamsVsPlayer(game: Game): void {
+/** Beams only bite after a short continuous exposure, so darting straight
+ *  through one at full speed (or dashing) is always a viable escape. */
+const BEAM_GRACE = 0.15;
+
+function beamsVsPlayer(game: Game, dt: number): void {
   const p = game.player;
+  let damage = 0;
   for (const e of game.enemies) {
     if (e.dead || e.kind !== 'laser' || e.state !== 2) continue;
     if (p.y > e.y && Math.abs(p.x - e.x) < e.beamW / 2 + p.r * 0.8) {
-      p.takeDamage(16, game);
+      damage = Math.max(damage, 16);
     }
   }
-  if (game.boss && game.boss.beamHitsPlayer(p, game)) p.takeDamage(18, game);
+  if (game.boss && game.boss.beamHitsPlayer(p, game)) damage = Math.max(damage, 18);
+
+  if (damage === 0) {
+    p.beamExposure = 0;
+    return;
+  }
+  p.beamExposure += dt;
+  if (p.beamExposure >= BEAM_GRACE) {
+    p.beamExposure = 0;
+    p.takeDamage(damage, game);
+  } else if (p.invuln <= 0) {
+    // grazing — sparks warn that the beam is about to bite
+    game.particles.sparks(p.x, p.y, '#ff4060', 2);
+  }
 }
 
 function powerupsVsPlayer(game: Game): void {
