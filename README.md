@@ -56,8 +56,8 @@ rotation / browser-chrome resizes are handled live.
   bonuses, high score persisted in localStorage.
 - **Juice** — particle explosions, shockwave rings, screen shake, hit flashes,
   slow-motion kicks, dash afterimages, nebulae and shooting stars, scanline /
-  vignette overlay, procedural synthwave soundtrack through a compressor and
-  delay bus.
+  vignette overlay, procedural arcade-fighter soundtrack (funk slap bass,
+  brass stabs, vibrato lead) through a compressor, drive and delay bus.
 
 ## Code layout
 
